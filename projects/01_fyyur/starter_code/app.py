@@ -46,11 +46,11 @@ class Venue(db.Model):
     genres = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
+    image_link = db.Column(db.String(120))
     facebook_link = db.Column(db.String(120))
-    seeking_description = db.Column((db.String(500)))
+    seeking_description = db.Column((db.String(120)))
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
-    website_link = db.Column(db.String(500))
+    website = db.Column(db.String(120))
     shows = db.relationship('Show', backref=db.backref('venue', lazy=True))
     
     
@@ -65,10 +65,10 @@ class Artist(db.Model):
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
+    image_link = db.Column(db.String(120))
     facebook_link = db.Column(db.String(120))
-    website_link = db.Column(db.String(500))
-    seeking_description = db.Column((db.String(500)))
+    website = db.Column(db.String(120))
+    seeking_description = db.Column((db.String(120)))
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
     shows = db.relationship('Show', backref=db.backref('artist', lazy=True))
 
@@ -483,6 +483,7 @@ def edit_venue_submission(venue_id):
   # venue record with ID <venue_id> using the new attributes
   
   venue = Venue.query.get(venue_id)
+  
   try:
     name = request.form.get('name')
     city = request.form.get('city')

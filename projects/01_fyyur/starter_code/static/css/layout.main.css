@@ -23,7 +23,6 @@ body {
   height: 60px;
 }
 
-
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
@@ -53,5 +52,5 @@ h3 {
 }
 
 h3 > span.orange {
-  color: #FF9C44;
+  color: #ff9c44;
 }
