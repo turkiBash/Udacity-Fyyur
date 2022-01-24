@@ -3,6 +3,8 @@
 #----------------------------------------------------------------------------#
 
 import json
+import sys
+import traceback
 import dateutil.parser
 import babel
 from flask_migrate import Migrate
@@ -21,6 +23,7 @@ from datetime import datetime
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
+app.config['SQLALCHEMY_TRACE_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -39,19 +42,20 @@ class Show(db.Model):
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(120))
-    facebook_link = db.Column(db.String(120))
-    seeking_description = db.Column((db.String(120)))
+    
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    name = db.Column(db.String, unique=True, nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
+    address = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
+    image_link = db.Column(db.String(500), nullable=False)
+    facebook_link = db.Column(db.String(120), nullable=False)
+    website = db.Column(db.String(120), nullable=False)
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
-    website = db.Column(db.String(120))
-    shows = db.relationship('Show', backref=db.backref('venue', lazy=True))
+    seeking_describtion = db.Column(db.String(500), nullable=False)
+    shows = db.relationship('Show', backref = db.backref('venue', lazy=True))
     
     
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
@@ -59,18 +63,18 @@ class Venue(db.Model):
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(120))
-    facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    seeking_description = db.Column((db.String(120)))
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    name = db.Column(db.String , unique=True, nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
+    image_link = db.Column(db.String(500), nullable=False)
+    facebook_link = db.Column(db.String(120), nullable=False)
+    website = db.Column(db.String(120), nullable=False)
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
-    shows = db.relationship('Show', backref=db.backref('artist', lazy=True))
+    seeking_describtion = db.Column(db.String(500), nullable=False)
+    shows = db.relationship('Show', backref = db.backref('artist', lazy=True))
 
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
@@ -181,21 +185,16 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  
   venue = Venue.query.filter_by(id=venue_id).first()
   shows = Show.query.filter_by(venue_id=venue_id).all()
   past_shows = []
   upcoming_shows = []
   now = datetime.now()
-  
   i=0
   j=0
-  
   for show in shows:
-        
-    artist = db.session.query(Artist).join(show).filter_by(artist_id=show.artist_id).first()
+    artist = db.session.query(Artist).join(Show).filter_by(artist_id=show.artist_id).first()
     date_time = show.start_time.strftime("%Y-%m-%d %H:%M:%S")
-    
     record={
       "artist_id": artist.id,
       "artist_name": artist.name,
@@ -203,16 +202,11 @@ def show_venue(venue_id):
       "start_time": date_time
     }
     if(show.start_time>now):
-          
       upcoming_shows.insert(i, record)
       i=i+1
-      
     if(show.start_time<now):
-          
       past_shows.insert(j, record)  
-      
       j=j+1
-      
   data={
     "id": venue.id,
     "name": venue.name,
@@ -245,7 +239,6 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-  
   try:
     name = request.form.get('name')
     city = request.form.get('city')
@@ -263,21 +256,21 @@ def create_venue_submission():
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_describtion=seeking_describtion)
     db.session.add(venue)
     db.session.commit()
-
-  # on successful db insert, flash success
+    # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  
   # TODO: on unsuccessful db insert, flash an error instead.
+
   except:
     flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
     db.session.rollback()
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  
+
   finally:
     db.session.close()
 
   return render_template('pages/home.html')
+
   
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -554,9 +547,14 @@ def create_artist_submission():
   # on successful db insert, flash success
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
-  except:
-    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
-    db.session.rollback()
+  # except:
+    # flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+    # db.session.rollback()
+    
+  except Exception as err:
+    print(traceback.format_exc())
+    # or
+    print(sys.exc_info()[2])
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   
   finally:
