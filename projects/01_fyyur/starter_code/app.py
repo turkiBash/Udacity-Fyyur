@@ -2,6 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
+from importlib import import_module
 import json
 import sys
 import traceback
@@ -22,14 +23,14 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from datetime import datetime
+  
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
 app.config.from_object('config')
-app.config['SQLALCHEMY_TRACE_MODIFICATIONS'] = False
+moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -41,8 +42,9 @@ SQLALCHEMY_DATABASE_URI ='postgresql://postgres:1111@localhost:5433/fyyur'
 #----------------------------------------------------------------------------#
 class Show(db.Model):
         __tablename__='Show'
-        id = db.Column(db.Integer, primary_key=True, nullable=False)
-        venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+        
+        # id = db.Column(db.Integer, primary_key=True, nullable=False)
+        venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), primary_key=True, nullable=False)
         artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
         start_time = db.Column(db.DateTime, nullable=False)
 class Venue(db.Model):
@@ -87,8 +89,6 @@ class Artist(db.Model):
     
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.    
-    
-
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
