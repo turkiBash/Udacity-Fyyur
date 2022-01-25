@@ -8,7 +8,13 @@ import traceback
 import dateutil.parser
 import babel
 from flask_migrate import Migrate
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import ( Flask, 
+    render_template, 
+    request, 
+    Response, 
+    flash, 
+    redirect, 
+    url_for )
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -35,9 +41,9 @@ SQLALCHEMY_DATABASE_URI ='postgresql://postgres:1111@localhost:5433/fyyur'
 #----------------------------------------------------------------------------#
 class Show(db.Model):
         __tablename__='Show'
-        
-        venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), primary_key=True, nullable=False)
-        artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), primary_key=True, nullable=False)
+        id = db.Column(db.Integer, primary_key=True, nullable=False)
+        venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+        artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
         start_time = db.Column(db.DateTime, nullable=False)
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -54,7 +60,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120), nullable=False)
     website = db.Column(db.String(120), nullable=False)
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
-    seeking_describtion = db.Column(db.String(500), nullable=False)
+    seeking_description = db.Column(db.String(500), nullable=False)
     shows = db.relationship('Show', backref = db.backref('venue', lazy=True))
     
     
@@ -73,7 +79,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120), nullable=False)
     website = db.Column(db.String(120), nullable=False)
     seeking_talent = db.Column(db.Boolean , default=False, nullable=False)
-    seeking_describtion = db.Column(db.String(500), nullable=False)
+    seeking_description = db.Column(db.String(500), nullable=False)
     shows = db.relationship('Show', backref = db.backref('artist', lazy=True))
 
 
@@ -218,6 +224,7 @@ def show_venue(venue_id):
     "website": venue.website,
     "facebook_link": venue.facebook_link,
     "seeking_talent": venue.seeking_talent,
+    "seeking_description": venue.seeking_description,
     "image_link": venue.image_link,
     "past_shows": past_shows,
     "upcoming_shows": upcoming_shows,
@@ -249,11 +256,11 @@ def create_venue_submission():
     genres = request.form.getlist('genres')
     facebook_link = request.form.get('facebook_link')
     website = request.form.get('website')
+    seeking_description = request.form.get('seeking_description')
     seeking_talent = request.form.get('seeking_talent') == 'True'
-    seeking_describtion = request.form.get('seeking_describtion')
 
     
-    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_describtion=seeking_describtion)
+    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
     db.session.add(venue)
     db.session.commit()
     # on successful db insert, flash success
@@ -374,6 +381,7 @@ def show_artist(artist_id):
     "state": artist.state,
     "phone": artist.phone,
     "seeking_venue": artist.seeking_talent,
+    "seeking_description": artist.seeking_description,
     "image_link": artist.image_link,
     "past_shows": past_shows,
     "upcoming_shows": upcoming_shows,
@@ -400,7 +408,7 @@ def edit_artist(artist_id):
     "website": artistRecord.website,
     "facebook_link": artistRecord.facebook_link,
     "seeking_venue": artistRecord.seeking_talent,
-    "seeking_description": artistRecord.seeking_describtion,
+    "seeking_description": artistRecord.seeking_description,
     "image_link": artistRecord.image_link
     
   }
@@ -423,7 +431,7 @@ def edit_artist_submission(artist_id):
     facebook_link = request.form.get('facebook_link')
     website = request.form.get('website')
     seeking_talent = request.form.get('seeking_talent') == 'True'
-    seeking_describtion = request.form.get('seeking_describtion')
+    seeking_description = request.form.get('seeking_description')
 
     artist.name = name
     artist.city = city
@@ -434,7 +442,7 @@ def edit_artist_submission(artist_id):
     artist.facebook_link = facebook_link
     artist.website = website
     artist.seeking_talent = seeking_talent
-    artist.seeking_describtion = seeking_describtion
+    artist.seeking_description = seeking_description
 
     db.session.commit()
     flash('Artist ' + request.form['name'] + ' was successfully updated!')
@@ -464,7 +472,7 @@ def edit_venue(venue_id):
     "website": venueRecord.website,
     "facebook_link": venueRecord.facebook_link,
     "seeking_talent": venueRecord.seeking_talent,
-    "seeking_description": venueRecord.seeking_describtion,
+    "seeking_description": venueRecord.seeking_description,
     "image_link": venueRecord.image_link
   }
   # TODO: populate form with values from venue with ID <venue_id>
@@ -488,7 +496,7 @@ def edit_venue_submission(venue_id):
     facebook_link = request.form.get('facebook_link')
     website = request.form.get('website')
     seeking_talent = request.form.get('seeking_talent') == 'True'
-    seeking_describtion = request.form.get('seeking_describtion')
+    seeking_description = request.form.get('seeking_description')
 
     venue.name = name
     venue.city = city
@@ -500,7 +508,7 @@ def edit_venue_submission(venue_id):
     venue.facebook_link = facebook_link
     venue.website = website
     venue.seeking_talent = seeking_talent
-    venue.seeking_describtion = seeking_describtion
+    venue.seeking_description = seeking_description
 
     db.session.commit()
     flash('Venue ' + request.form['name'] + ' was successfully updated!')
@@ -538,9 +546,9 @@ def create_artist_submission():
     facebook_link = request.form.get('facebook_link')
     website = request.form.get('website')
     seeking_talent = request.form.get('seeking_talent') == 'True'
-    seeking_describtion = request.form.get('seeking_describtion')
+    seeking_description = request.form.get('seeking_description')
 
-    artist = Artist(name=name, city=city, state=state, phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_describtion=seeking_describtion)
+    artist = Artist(name=name, city=city, state=state, phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
     db.session.add(artist)
     db.session.commit()
 

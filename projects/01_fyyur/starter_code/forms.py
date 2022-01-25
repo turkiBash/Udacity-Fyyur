@@ -126,8 +126,8 @@ class VenueForm(Form):
             ('False', 'False'),
         ]
     )
-    seeking_describtion = StringField(
-        'seeking_talent'
+    seeking_description = StringField(
+        'seeking_description'
     )
 
 class ArtistForm(Form):
@@ -239,8 +239,8 @@ class ArtistForm(Form):
             ('False', 'False'),
         ]
     )
-    seeking_describtion = StringField(
-        'seeking_describtion'
+    seeking_description = StringField(
+        'seeking_description'
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
