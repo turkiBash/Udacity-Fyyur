@@ -33,19 +33,18 @@ def create_app(test_config=None):
   for all available categories.
   '''
 
-  @app.route('/categories',methods=['GET'])
+  @app.route('/categories', methods=['GET'])
   def get_categories():
       try:
         categories = Category.query.order_by(Category.id).all()
-        formated_categories = [category.type.format() for category in categories]
+        formated_categories = [category.type.format(id,type) for category in categories]
         print(formated_categories)
         return jsonify({
           "success" : True,
           "categories" : formated_categories
         })
-      except: 
-        abort(422)  
-      
+      except Exception as e:    
+        print(e)
 
   '''
   @TODO: 
@@ -195,25 +194,26 @@ def create_app(test_config=None):
   '''
   @app.route('/quizzes',methods=['POST'])
   def get_question_quizzes():
-        try:
-          body = request.get_json()
-          
-          previous_questions = body['previous_questions']
-          quiz_category = body['quiz_category']
-          questions = Question.query.filter_by(category=quiz_category['id']).filter(Question.id.notin_((previous_questions))).all()
-          if len(questions)==0:
-            return jsonify({
-              "success" : True
-            })
-          else:
-            random_question = random.choice(questions).format()
-            return jsonify({
-              "success" : True,
-              "questions" : random_question
-            })
-            
-        except:
-          abort(400)
+    try:
+      body = request.get_json()
+      
+      previous_questions = body['previous_questions']
+      quiz_category = body['quiz_category']
+      questions = Question.query.filter_by(category=quiz_category['id']).filter(Question.id.notin_((previous_questions))).all()
+      
+      if len(questions)==0:
+        return jsonify({
+          "success" : True
+        }) 
+      else:  
+        random_question = random.choice(questions).format()
+        return jsonify({
+          "success" : True,
+          "question": random_question
+        }) 
+
+    except:
+      abort(400)
                     
   '''
   @TODO: 
