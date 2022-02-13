@@ -18,7 +18,7 @@ app = create_app()
 
 
 @app.route('/actors', methods=['GET'])
-@requires_auth('get:actors')
+@requires_auth('get:actor')
 def get_actors(payload):
     try:
         actors = Actor.query.order_by(Actor.id).all()
@@ -33,7 +33,7 @@ def get_actors(payload):
 
 
 @app.route('/actors/<int:actor_id>', methods=['DELETE'])
-@requires_auth('delete:actors')
+@requires_auth('delete:actor')
 def delete_actor(payload, actor_id):
     try:
         query = Actor.query.get(actor_id)
@@ -48,7 +48,7 @@ def delete_actor(payload, actor_id):
 
 
 @app.route('/actors', methods=['POST'])
-@requires_auth('post:actors')
+@requires_auth('add:actor')
 def post_actor(payload):
     
     try:
@@ -70,7 +70,7 @@ def post_actor(payload):
 
 
 @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-@requires_auth('patch:actors')
+@requires_auth('patch:actor')
 
 def update_actor(payload, actor_id):
 
@@ -110,7 +110,7 @@ def update_actor(payload, actor_id):
 
 
 @app.route('/movies', methods=['GET'])
-@requires_auth('get:movies')
+@requires_auth('get:movie')
 
 def get_movies(payload):
 
@@ -130,7 +130,7 @@ def get_movies(payload):
 
 
 @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-@requires_auth('delete:movies')
+@requires_auth('delete:movie')
 def delete_movie(payload, movie_id):
 
     try:
@@ -148,7 +148,7 @@ def delete_movie(payload, movie_id):
 
 
 @app.route('/movies', methods=['POST'])
-@requires_auth('post:movies')
+@requires_auth('add:movie')
 def post_movie(payload):
 
     try:
@@ -171,7 +171,7 @@ def post_movie(payload):
 
 
 @app.route('/movies/<int:movie_id>', methods=['PATCH'])
-@requires_auth('patch:movies')
+@requires_auth('patch:movie')
 def update_movie(payload, movie_id):
     data = request.get_json()
     title = data.get('title', None)
